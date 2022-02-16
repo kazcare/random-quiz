@@ -2,12 +2,17 @@
 const questionNumber = document.querySelector(".question-number");
 const questionText = document.querySelector(".question-text");
 const optionContainer = document.querySelector(".option-container");
+const answersIndicatorContainer = document.querySelector(".answers-indicator")
+const homeBox = document.querySelector(".home-box");
+const quizBox = document.querySelector(".quiz-box");
+const resultBox = document.querySelector(".result-box");
 
 let questionCounter = 0;
 let currentQuestion;
 let availableQuestions = [];
 let availableOptions = [];
-
+let correctAnswers = 0;
+let attempt = 0;
 
 //push the questions  into availableQuestions Array
 function setAvailableQuestions(){
@@ -20,7 +25,7 @@ function setAvailableQuestions(){
 //set question number, question text and options
 function getNewQuestion(){
     //set question number
-    questionNumber.innerHTML = "Question " + (questionCounter + 1 ) + "of " + quiz.length;
+    questionNumber.innerHTML = "Question " + (questionCounter + 1 ) + " of " + quiz.length;
 
     //set question text
     //ger random question
@@ -40,14 +45,14 @@ function getNewQuestion(){
         availableOptions.push(i);
     }
     optionContainer.innerHTML = '';
-    let animationDelay = 0.1;
+    let animationDelay = 0.15;
     // create options in html
     for (let i=0; i < optionLen; i++){
         //random option
         const optionIndex = availableOptions[Math.floor(Math.random() * availableOptions.length)];
-        //get the position of 'optionIndex' from the available Options
+        //get the position of 'optionIndex' from the availableOptions Array
         const index2 = availableOptions.indexOf(optionIndex);
-        //remove the 'optionIndex' from the availableOptions, so that the option does not repeat
+        //remove the 'optionIndex' from the availableOptions Array, so that the option does not repeat
         availableOptions.splice(index2,1);
         const option = document.createElement("div");
         option.innerHTML = currentQuestion.options[optionIndex];
@@ -68,10 +73,15 @@ function getResult(element) {
     if(id === currentQuestion.answer){
         //set the green color to the correct option
         element.classList.add("correct");
+        //Add indicator to correct mark
+        updateAnswerIndicator("correct");
+        correctAnswers++;
     }
     else {
         //set the red color to the incorrect option
         element.classList.add("wrong");
+        //Add indicator to wrong mark
+        updateAnswerIndicator("wrong");
 
         //if the answer is incorrect, show the correct answer by adding green color to the correct option
         const optionLen = optionContainer.children.length;
@@ -81,6 +91,7 @@ function getResult(element) {
             }
         }
     }
+    attempt++;
     unclickableOptions();
 }  
 
@@ -92,19 +103,81 @@ function unclickableOptions() {
     }
 }
 
+function answersIndicator() {
+    answersIndicatorContainer.innerHTML = '';
+    const totalQuestion = quiz.length;
+    for(let i=0; i<totalQuestion; i++) {
+        const indicator = document.createElement("div");
+        answersIndicatorContainer.appendChild(indicator);
+    }
+}
+function updateAnswerIndicator(markType) {
+    answersIndicatorContainer.children[questionCounter-1].classList.add(markType);
+}
 function next() {
     if(questionCounter === quiz.length){
-        console.log("quiz over");
+        quizOver();
     }
     else {
         getNewQuestion();
     }
 }
 
-window.onload = function(){
+function quizOver() {
+    //hide quiz quizbox
+    quizBox.classList.add("hide");
+    //show result box
+    resultBox.classList.remove("hide")
+    quizResult();
+}
+//get the quia result
+function quizResult() {
+    resultBox.querySelector(".total-question").innerHTML = quiz.length;
+    resultBox.querySelector(".total-attempt").innerHTML = attempt;
+    resultBox.querySelector(".total-correct").innerHTML = correctAnswers;
+    resultBox.querySelector(".total-wrong").innerHTML = attempt - correctAnswers;
+    const percentage = (correctAnswers/quiz.length)*100;
+    resultBox.querySelector(".percentage").innerHTML = percentage.toFixed(2) + "%";
+    resultBox.querySelector(".total-score").innerHTML = correctAnswers + " / " + quiz.length;
+}
 
+function resetQuiz() {
+    questionCounter = 0;
+    correctAnswers = 0;
+    attempt = 0;
+}
+
+function tryAgainQuiz() {
+    //hide the resultBox
+    resultBox.classList.add("hide");
+    //show the quizBox
+    quizBox.classList.remove("hide");
+    resetQuiz();
+    startQuiz();
+}
+
+function goToHome() {
+    //hide resultBox
+    resultBox.classList.add("hide");
+    //show homeBox
+    homeBox.classList.remove("hide");
+    resetQuiz();
+}
+
+// #### STARTING POINT ####
+function startQuiz() {
+    //hide home box
+    homeBox.classList.add("hide");
+    //show quizBox
+    quizBox.classList.remove("hide");
     //first we will set all question in availableQuestions Array
-    setAvailableQuestions()
+    setAvailableQuestions();
     //then we will call getNewQuestion(); function
-    getNewQuestion()
+    getNewQuestion();
+    //to create inticators of answers
+    answersIndicator();
+}
+
+window.onload = function() {
+    homeBox.querySelector(".total-question").innerHTML = quiz.length;
 }
